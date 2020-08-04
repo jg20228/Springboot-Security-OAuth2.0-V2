@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
 
 import com.cos.securityex01.config.oauth.provider.FackbookUserInfo;
 import com.cos.securityex01.config.oauth.provider.GoogleUserInfo;
@@ -14,6 +15,7 @@ import com.cos.securityex01.config.oauth.provider.OAuth2UserInfo;
 import com.cos.securityex01.model.User;
 import com.cos.securityex01.repository.UserRepository;
 
+@Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 	//여러 OAuth가 있지만 이 Default가 편함
 	//일반적으로 로그인할때에 세션이 만들어짐 , OAuth2User 로그인하면 세션이 만들어지고
@@ -61,7 +63,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		}else if(userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
 			oAuth2UserInfo = new FackbookUserInfo(oAuth2User.getAttributes());
 		}else {
-			System.out.println("우리는 구글과 페이스북만 지원해요");
+			System.out.println("우리는 구글과 페이스북만 지원해요"); //원래는 exception 던져야 한다.
 		}
 		
 		
@@ -82,6 +84,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		//--> 없으면 insert 해야함.
 		
 		//return을 PrincipalDetails() Map안에 attributes가 들어가 있으니까!
-		return null;
+		return oAuth2User;
 	}
 }

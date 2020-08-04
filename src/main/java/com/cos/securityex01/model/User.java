@@ -9,11 +9,13 @@ import javax.persistence.Id;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import lombok.Builder;
 import lombok.Data;
 
 //ORM - Object Relation Mapping
 
 @Data
+@Builder
 @Entity
 public class User {
 	@Id //pk걸어주는 어노테이션

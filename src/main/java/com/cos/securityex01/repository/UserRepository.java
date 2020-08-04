@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, Integer>{
 	//SELECT * FROM user WHERE username = 1? And Password = 2? (String username,String password)
 	User findByUsername(String username);
 	
-	User findByEmail(String email);
+	//User findByEmail(String email);
 	
 	@Query(value="select * from user where email = 1?", nativeQuery = true)
 	Optional<User> mFindEmail(String email); //네이밍 쿼리보다는 직접 짜는걸 추천
