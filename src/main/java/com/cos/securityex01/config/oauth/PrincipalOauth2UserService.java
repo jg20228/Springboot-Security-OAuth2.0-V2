@@ -51,9 +51,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 	private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 		//일반적으로는 로그인할 때 유저 정보 User
 		//OAuth2로 로그인할 때 유저 정보 attributes <- 이거 구성해야함  , 파싱해서 오브젝트에 넣어도됨, 현상태 :귀찮아서 그냥 통으로 씀
-		System.out.println("이거 뭐야"+oAuth2User.getAttributes());
-
-		System.out.println("프로바이더"+userRequest.getClientRegistration());
 		//Attribute를 파싱해서 공통 객체로 묶는다. 관리가 편함
 		OAuth2UserInfo oAuth2UserInfo = null;
 		if(userRequest.getClientRegistration().getRegistrationId().equals("google")) {
@@ -63,7 +60,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		}else {
 			System.out.println("우리는 구글과 페이스북만 지원해요"); //원래는 exception 던져야 한다.
 		}
-		
 		
 		System.out.println("oAuth2UserInfo.getProvider() : " + oAuth2UserInfo.getProvider());
 		System.out.println("oAuth2UserInfo.getProviderId() : " + oAuth2UserInfo.getProviderId());
@@ -75,6 +71,9 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		User user;
 		if(userOptional.isPresent()) {
 			user = userOptional.get();
+			//user가 존재하면 update 해주기
+			user.setEmail(oAuth2UserInfo.getEmail());
+			userRepository.save(user);
 		}else {
 			user = User.builder()
 					//빌더 -> username이 중복되지 않게 provider+providerId로 만듬
@@ -85,20 +84,13 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 					.providerId(oAuth2UserInfo.getProviderId())
 					.build();
 			userRepository.save(user);
-			//
 		}
-		
-		
 		//1.OAuth2로 로그인 할때 유저정보 attributes
-		
 		//2. DB에 이사람 있나?
-		
 		//있으면?
 		//--> 있으면 update 해야함. 구글에서 바뀐걸 알 수가 없음
-		
 		//없으면?
 		//--> 없으면 insert 해야함.
-		
 		//return을 PrincipalDetails() Map안에 attributes가 들어가 있으니까!
 		return new PrincipalDetails(user, oAuth2User.getAttributes());
 	}

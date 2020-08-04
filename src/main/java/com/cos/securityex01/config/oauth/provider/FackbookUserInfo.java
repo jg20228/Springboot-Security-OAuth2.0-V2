@@ -17,7 +17,7 @@ public class FackbookUserInfo implements OAuth2UserInfo {
 
 	@Override
 	public String getProvider() {
-		return (String) attributes.get("facebook");
+		return "facebook";
 	}
 
 	@Override
