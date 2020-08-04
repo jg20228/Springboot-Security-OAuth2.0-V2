@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import com.cos.securityex01.config.auth.PrincipalDetails;
 import com.cos.securityex01.config.oauth.provider.FackbookUserInfo;
 import com.cos.securityex01.config.oauth.provider.GoogleUserInfo;
 import com.cos.securityex01.config.oauth.provider.OAuth2UserInfo;
@@ -43,11 +44,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		System.out.println("oAuth2User : "+oAuth2User); //토큰을 통해 응답받은 회원정보
 		System.out.println("userRequest token : "+userRequest.getAccessToken().getTokenValue());
 		System.out.println("userRequestClientRegistration : " +userRequest.getClientRegistration());//??
-		try {
-			
-		} catch (Exception e) {
-			
-		}
 		//userRequest의 AceesToken으로 oAuth2User에 신청
 		return processOAuth2User(userRequest, oAuth2User); 
 	}
@@ -55,7 +51,9 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 	private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 		//일반적으로는 로그인할 때 유저 정보 User
 		//OAuth2로 로그인할 때 유저 정보 attributes <- 이거 구성해야함  , 파싱해서 오브젝트에 넣어도됨, 현상태 :귀찮아서 그냥 통으로 씀
-		
+		System.out.println("이거 뭐야"+oAuth2User.getAttributes());
+
+		System.out.println("프로바이더"+userRequest.getClientRegistration());
 		//Attribute를 파싱해서 공통 객체로 묶는다. 관리가 편함
 		OAuth2UserInfo oAuth2UserInfo = null;
 		if(userRequest.getClientRegistration().getRegistrationId().equals("google")) {
@@ -70,8 +68,26 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		System.out.println("oAuth2UserInfo.getProvider() : " + oAuth2UserInfo.getProvider());
 		System.out.println("oAuth2UserInfo.getProviderId() : " + oAuth2UserInfo.getProviderId());
 		
-		Optional<User> userOptional = userRepository.mFindEmail(oAuth2UserInfo.getEmail());
+		//옵셔널로 감싸줘서 바꿔주는애는 JPA이다.
+		//user 이메일은 절대 null값은 리턴 안됨->옵셔널
+		Optional<User> userOptional = userRepository.findByProviderAndProviderId(oAuth2UserInfo.getProvider(),oAuth2UserInfo.getProviderId());
 				
+		User user;
+		if(userOptional.isPresent()) {
+			user = userOptional.get();
+		}else {
+			user = User.builder()
+					//빌더 -> username이 중복되지 않게 provider+providerId로 만듬
+					.username(oAuth2UserInfo.getProvider()+"_"+oAuth2UserInfo.getProviderId())
+					.email(oAuth2UserInfo.getEmail())
+					.role("ROLE_USER")
+					.provider(oAuth2UserInfo.getProvider())
+					.providerId(oAuth2UserInfo.getProviderId())
+					.build();
+			userRepository.save(user);
+			//
+		}
+		
 		
 		//1.OAuth2로 로그인 할때 유저정보 attributes
 		
@@ -84,6 +100,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		//--> 없으면 insert 해야함.
 		
 		//return을 PrincipalDetails() Map안에 attributes가 들어가 있으니까!
-		return oAuth2User;
+		return new PrincipalDetails(user, oAuth2User.getAttributes());
 	}
 }

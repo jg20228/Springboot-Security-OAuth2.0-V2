@@ -11,14 +11,16 @@ import com.cos.securityex01.model.User;
 public interface UserRepository extends JpaRepository<User, Integer>{
 	
 	// Jpa Naming 전략 - 함수이름을 만들면 함수이름에 맞게 쿼리가 작동됨
-	// SELECT * FROM user WHERE username = 1?
+	// SELECT * FROM user WHERE username = ?1
 	//첫번째 파라미터라서 1이 붙음, 대문자 필수! 
-	//SELECT * FROM user WHERE username = 1? And Password = 2? (String username,String password)
+	//SELECT * FROM user WHERE username = ?1 And Password = ?2 (String username,String password)
 	User findByUsername(String username);
 	
-	//User findByEmail(String email);
+	//SELECT * FROM user WHERE provider =?1 and providerId = ?2
+	Optional<User> findByProviderAndProviderId(String provider, String providerId);
 	
-	@Query(value="select * from user where email = 1?", nativeQuery = true)
+	//TEST에서 쓰였음
+	@Query(value="select * from user where email = ?1", nativeQuery = true)
 	Optional<User> mFindEmail(String email); //네이밍 쿼리보다는 직접 짜는걸 추천
 	
 	//네이티브 (내가 원하는 쿼리문을 만들어서 쓸려면
