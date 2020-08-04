@@ -1,6 +1,9 @@
 package com.cos.securityex01.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import com.cos.securityex01.model.User;
 
@@ -13,6 +16,10 @@ public interface UserRepository extends JpaRepository<User, Integer>{
 	//SELECT * FROM user WHERE username = 1? And Password = 2? (String username,String password)
 	User findByUsername(String username);
 	
+	User findByEmail(String email);
+	
+	@Query(value="select * from user where email = 1?", nativeQuery = true)
+	Optional<User> mFindEmail(String email); //네이밍 쿼리보다는 직접 짜는걸 추천
 	
 	//네이티브 (내가 원하는 쿼리문을 만들어서 쓸려면
 	//@Query(value="select * from user",nativeQuery = true)

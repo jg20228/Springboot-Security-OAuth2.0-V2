@@ -1,5 +1,6 @@
 package com.cos.securityex01.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 
 import com.cos.securityex01.config.oauth.PrincipalOauth2UserService;
 
@@ -16,6 +18,10 @@ import com.cos.securityex01.config.oauth.PrincipalOauth2UserService;
 @EnableWebSecurity //필터 체인 관리 시작 어노테이션 오버라이딩해서 체인 하나하나를 직접적을 관리가 가능하다.
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true) //특정 주소 접근시 권한 및 인증을 위한 어노테이션 활성화
 public class SecurityConfig extends WebSecurityConfigurerAdapter{
+	
+	@Autowired
+	private PrincipalOauth2UserService principalOauth2UserService;
+	
 	
 	@Bean //여기다가 적어두면 IoC가 되어서 쓰고 싶은곳에서 AutoWired하면 됨
 	public BCryptPasswordEncoder encodePwd() {
@@ -46,7 +52,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 			.oauth2Login() ///oauth2/authorization/google로 올때 낚아채고나서 어디로 갈지 정해줘야함(Service)
 			.loginPage("/login")
 			.userInfoEndpoint()
-			.userService(new PrincipalOauth2UserService())//만드는게 핵심
+			.userService(principalOauth2UserService)//만드는게 핵심
+			//이렇게하면 다른데에서 못찾기 때문에 IoC로 바꿈
 		;
 	}
 }

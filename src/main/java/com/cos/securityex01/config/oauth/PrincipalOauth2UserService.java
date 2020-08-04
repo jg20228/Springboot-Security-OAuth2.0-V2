@@ -1,13 +1,25 @@
 package com.cos.securityex01.config.oauth;
 
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import com.cos.securityex01.config.oauth.provider.FackbookUserInfo;
+import com.cos.securityex01.config.oauth.provider.GoogleUserInfo;
+import com.cos.securityex01.config.oauth.provider.OAuth2UserInfo;
+import com.cos.securityex01.model.User;
+import com.cos.securityex01.repository.UserRepository;
+
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 	//여러 OAuth가 있지만 이 Default가 편함
 	//일반적으로 로그인할때에 세션이 만들어짐 , OAuth2User 로그인하면 세션이 만들어지고
+	
+	@Autowired
+	private UserRepository userRepository;
 	
 	// userRequest는 code를 받아서 accessToken을 응답 받은 객체
 	@Override
@@ -34,14 +46,30 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService{
 		} catch (Exception e) {
 			
 		}
-		
-		return super.loadUser(userRequest); //여기서 session에 등록됨
+		//userRequest의 AceesToken으로 oAuth2User에 신청
+		return processOAuth2User(userRequest, oAuth2User); 
 	}
 	
 	private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 		//일반적으로는 로그인할 때 유저 정보 User
 		//OAuth2로 로그인할 때 유저 정보 attributes <- 이거 구성해야함  , 파싱해서 오브젝트에 넣어도됨, 현상태 :귀찮아서 그냥 통으로 씀
 		
+		//Attribute를 파싱해서 공통 객체로 묶는다. 관리가 편함
+		OAuth2UserInfo oAuth2UserInfo = null;
+		if(userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+			oAuth2UserInfo = new GoogleUserInfo(oAuth2User.getAttributes());
+		}else if(userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
+			oAuth2UserInfo = new FackbookUserInfo(oAuth2User.getAttributes());
+		}else {
+			System.out.println("우리는 구글과 페이스북만 지원해요");
+		}
+		
+		
+		System.out.println("oAuth2UserInfo.getProvider() : " + oAuth2UserInfo.getProvider());
+		System.out.println("oAuth2UserInfo.getProviderId() : " + oAuth2UserInfo.getProviderId());
+		
+		Optional<User> userOptional = userRepository.mFindEmail(oAuth2UserInfo.getEmail());
+				
 		
 		//1.OAuth2로 로그인 할때 유저정보 attributes
 		
